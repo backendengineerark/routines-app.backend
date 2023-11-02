@@ -1,0 +1,10 @@
+.docker
+.vscode
+.DS_Store
+__debug**
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out

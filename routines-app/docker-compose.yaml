@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  routines_db:
+    platform: linux/x86_64
+    image: mysql:5.7
+    container_name: routines_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: routines_db
+      MYSQL_PASSWORD: root
+    ports:
+      - 33009:3306
+    volumes:
+      - .docker/mysql:/var/lib/mysql
