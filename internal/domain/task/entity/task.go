@@ -17,6 +17,7 @@ type Task struct {
 	Name      string
 	DueTime   string
 	IsArchive bool
+	Routines  []*Routine
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -30,6 +31,7 @@ func CreateTask(command *CreateTaskCommand) (*Task, error) {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
+	task.AddRoutine(time.Now())
 	err := task.IsValid()
 
 	if err != nil {
@@ -50,6 +52,16 @@ func (ta *Task) IsValid() error {
 			Message: "Task due time is required",
 		}
 	}
+
+	return nil
+}
+
+func (ta *Task) AddRoutine(dueTime time.Time) error {
+	routine, err := CreateRoutine(ta, dueTime)
+	if err != nil {
+		return err
+	}
+	ta.Routines = append(ta.Routines, routine)
 
 	return nil
 }

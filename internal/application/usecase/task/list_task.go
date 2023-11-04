@@ -23,7 +23,7 @@ func (ct *ListTaskUseCase) Execute(isArchived bool) ([]taskdto.TaskOutputDTO, er
 		return nil, err
 	}
 
-	var output []taskdto.TaskOutputDTO
+	output := []taskdto.TaskOutputDTO{}
 	for _, task := range tasks {
 		output = append(output, taskdto.TaskOutputDTO{
 			Id:         task.Id,

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/backendengineerark/routines-app/configs"
+	"github.com/backendengineerark/routines-app/internal/cron"
 	"github.com/backendengineerark/routines-app/internal/infra/database"
 	webhandler "github.com/backendengineerark/routines-app/internal/infra/web/handler"
 	"github.com/go-chi/chi/v5"
@@ -43,6 +44,7 @@ func main() {
 		// r.Delete("/{id}", productHandler.DeleteProduct)
 	})
 
+	go cron.ExecuteCronJobs(configs.CreateRoutinesTaskCron, taskRepository)
 	fmt.Printf("Starting web server on port %s", configs.WebServerPort)
 	http.ListenAndServe(":"+configs.WebServerPort, r)
 }

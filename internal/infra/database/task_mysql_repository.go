@@ -28,6 +28,17 @@ func (tr *TaskMysqlRepository) Create(task *entity.Task) error {
 		return err
 	}
 
+	stmt, err = tr.DB.Prepare("insert into routines(id, tasks_id, due_date, is_finished, created_at, updated_at) values (?, ?, ?, ?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(task.Routines[0].Id, task.Id, task.Routines[0].DueDate, task.Routines[0].IsFinished, task.Routines[0].CreatedAt, task.Routines[0].Task.UpdatedAt)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -58,7 +69,7 @@ func (tr *TaskMysqlRepository) ListBy(isArchived bool) ([]entity.Task, error) {
 		return nil, err
 	}
 
-	var tasks []entity.Task
+	tasks := []entity.Task{}
 
 	for rows.Next() {
 		var task entity.Task
