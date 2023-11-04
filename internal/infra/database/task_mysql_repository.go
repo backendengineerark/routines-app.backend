@@ -46,12 +46,17 @@ func (tr *TaskMysqlRepository) Update(task *entity.Task) error {
 	return nil
 }
 
-func (tr *TaskMysqlRepository) ListsBy(isArchived bool) ([]entity.Task, error) {
-	rows, err := tr.DB.Query("select id, name, due_time, is_archived, created_at, updated_at where is_archived = ?")
+func (tr *TaskMysqlRepository) ListBy(isArchived bool) ([]entity.Task, error) {
+	stmt, err := tr.DB.Prepare("select id, name, due_time, is_archived, created_at, updated_at from tasks where is_archived = ? order by created_at desc")
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer stmt.Close()
+
+	rows, err := stmt.Query(isArchived)
+	if err != nil {
+		return nil, err
+	}
 
 	var tasks []entity.Task
 

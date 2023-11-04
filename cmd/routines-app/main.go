@@ -3,18 +3,20 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 
 	"github.com/backendengineerark/routines-app/configs"
 	"github.com/backendengineerark/routines-app/internal/infra/database"
 	webhandler "github.com/backendengineerark/routines-app/internal/infra/web/handler"
-	"github.com/backendengineerark/routines-app/internal/infra/web/webserver"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
 	configs := configs.LoadConfig("../../.")
 
-	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
+	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
 	if err != nil {
 		panic(err)
 	}
@@ -22,12 +24,25 @@ func main() {
 
 	taskRepository := database.NewTaskMysqlRepository(db)
 
-	webserver := webserver.NewWebServer(configs.WebServerPort)
+	r := chi.NewRouter()
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+	}))
 
 	taskHandler := webhandler.NewTaskHandler(taskRepository)
-	webserver.AddHandler("/tasks", taskHandler.Create)
+	r.Route("/tasks", func(r chi.Router) {
+		r.Post("/", taskHandler.Create)
+		r.Get("/", taskHandler.FindAll)
+		// r.Get("/{id}", productHandler.GetProduct)
+		// r.Put("/{id}", productHandler.UpdateProduct)
+		// r.Delete("/{id}", productHandler.DeleteProduct)
+	})
 
 	fmt.Printf("Starting web server on port %s", configs.WebServerPort)
-	webserver.Start()
-
+	http.ListenAndServe(":"+configs.WebServerPort, r)
 }

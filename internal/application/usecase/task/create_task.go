@@ -1,37 +1,22 @@
 package usecase
 
 import (
-	"time"
-
+	taskdto "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
 	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
-
-type TaskInputDTO struct {
-	Name    string `json:"name"`
-	DueTime string `json:"due_time"`
-}
-
-type TaskOutputDTO struct {
-	Id         string    `json:"id"`
-	Name       string    `json:"name"`
-	DueTime    string    `json:"due_time"`
-	IsArchived bool      `json:"is_archived"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-}
 
 type CreateTaskUseCase struct {
 	TaskRepository repository.ITaskRepository
 }
 
-func NewCreateTaskUseCase(taskRepository repository.ITaskRepository) (*CreateTaskUseCase, error) {
+func NewCreateTaskUseCase(taskRepository repository.ITaskRepository) *CreateTaskUseCase {
 	return &CreateTaskUseCase{
 		TaskRepository: taskRepository,
-	}, nil
+	}
 }
 
-func (ct *CreateTaskUseCase) Execute(input *TaskInputDTO) (*TaskOutputDTO, error) {
+func (ct *CreateTaskUseCase) Execute(input *taskdto.TaskInputDTO) (*taskdto.TaskOutputDTO, error) {
 	command := &entity.CreateTaskCommand{
 		Name:    input.Name,
 		DueTime: input.DueTime,
@@ -46,7 +31,7 @@ func (ct *CreateTaskUseCase) Execute(input *TaskInputDTO) (*TaskOutputDTO, error
 		return nil, err
 	}
 
-	output := &TaskOutputDTO{
+	output := &taskdto.TaskOutputDTO{
 		Id:         task.Id,
 		Name:       task.Name,
 		DueTime:    task.DueTime,
