@@ -46,26 +46,26 @@ func (tr *TaskMysqlRepository) Update(task *entity.Task) error {
 	return nil
 }
 
-// func (tr *TaskMysqlRepository) listsBy(isArchived bool) ([]entity.Task, error) {
-// 	rows, err := tr.DB.Query("select id, name, due_time, is_archived, created_at, updated_at where is_archived = ?")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
+func (tr *TaskMysqlRepository) ListsBy(isArchived bool) ([]entity.Task, error) {
+	rows, err := tr.DB.Query("select id, name, due_time, is_archived, created_at, updated_at where is_archived = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-// 	var tasks []entity.Task
+	var tasks []entity.Task
 
-// 	for rows.Next() {
-// 		var task entity.Task
+	for rows.Next() {
+		var task entity.Task
 
-// 		err := rows.Scan(&task.Id, &task.Name, &task.DueTime, &task.IsArchive, &task.CreatedAt, &task.UpdatedAt)
+		err := rows.Scan(&task.Id, &task.Name, &task.DueTime, &task.IsArchive, &task.CreatedAt, &task.UpdatedAt)
 
-// 		if err != nil {
-// 			return nil, err
-// 		}
+		if err != nil {
+			return nil, err
+		}
 
-// 		tasks = append(tasks, task)
-// 	}
+		tasks = append(tasks, task)
+	}
 
-// 	return tasks, nil
-// }
+	return tasks, nil
+}
