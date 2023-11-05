@@ -19,27 +19,32 @@ func NewListRoutineUseCase(taskRepository repository.ITaskRepository) *ListRouti
 
 func (ct *ListRoutineUseCase) Execute(date time.Time) ([]taskdto.RoutineOutputDTO, error) {
 
-	routines, err := ct.TaskRepository.ListRoutine(date)
+	isArchived := false
+	tasks, err := ct.TaskRepository.FindAllBy(isArchived)
 
 	if err != nil {
 		return nil, err
 	}
 
 	output := []taskdto.RoutineOutputDTO{}
-	for _, routine := range routines {
+	for _, task := range tasks {
+		if task.TodayRoutine == nil {
+			continue
+		}
+
 		output = append(output, taskdto.RoutineOutputDTO{
-			Id:            routine.Id,
-			ReferenceDate: routine.ReferenceDate,
-			IsFinished:    routine.IsFinished,
-			CreatedAt:     routine.CreatedAt,
-			UpdatedAt:     routine.UpdatedAt,
+			Id:            task.TodayRoutine.Id,
+			ReferenceDate: task.TodayRoutine.ReferenceDate,
+			IsFinished:    task.TodayRoutine.IsFinished,
+			CreatedAt:     task.TodayRoutine.CreatedAt,
+			UpdatedAt:     task.TodayRoutine.UpdatedAt,
 			Task: &taskdto.TaskOutputDTO{
-				Id:         routine.Task.Id,
-				Name:       routine.Task.Name,
-				DueTime:    routine.Task.DueTime,
-				IsArchived: routine.Task.IsArchive,
-				CreatedAt:  routine.Task.CreatedAt,
-				UpdatedAt:  routine.Task.UpdatedAt,
+				Id:         task.Id,
+				Name:       task.Name,
+				DueTime:    task.DueTime,
+				IsArchived: task.IsArchive,
+				CreatedAt:  task.CreatedAt,
+				UpdatedAt:  task.UpdatedAt,
 			},
 		})
 	}

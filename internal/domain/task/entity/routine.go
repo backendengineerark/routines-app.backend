@@ -3,24 +3,23 @@ package entity
 import (
 	"time"
 
+	"github.com/backendengineerark/routines-app/internal/domain/common/custom_dates"
 	customerrors "github.com/backendengineerark/routines-app/internal/domain/common/custom_errors"
 	"github.com/google/uuid"
 )
 
 type Routine struct {
 	Id            string
-	Task          *Task
 	ReferenceDate time.Time
 	IsFinished    bool
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
 
-func CreateRoutine(task *Task, referenceDate time.Time) (*Routine, error) {
+func CreateRoutine() (*Routine, error) {
 	routine := &Routine{
 		Id:            uuid.NewString(),
-		Task:          task,
-		ReferenceDate: referenceDate,
+		ReferenceDate: custom_dates.TodayBeginningHour(),
 		IsFinished:    false,
 		CreatedAt:     time.Now().Local(),
 		UpdatedAt:     time.Now().Local(),
@@ -41,4 +40,14 @@ func (r *Routine) IsValid() error {
 		}
 	}
 	return nil
+}
+
+func (r *Routine) Finish() {
+	r.IsFinished = true
+	r.UpdatedAt = time.Now()
+}
+
+func (r *Routine) Unfinish() {
+	r.IsFinished = false
+	r.UpdatedAt = time.Now()
 }

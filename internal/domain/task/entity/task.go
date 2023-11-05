@@ -3,7 +3,6 @@ package entity
 import (
 	"time"
 
-	"github.com/backendengineerark/routines-app/internal/domain/common/custom_dates"
 	customerrors "github.com/backendengineerark/routines-app/internal/domain/common/custom_errors"
 	"github.com/google/uuid"
 )
@@ -14,13 +13,13 @@ type CreateTaskCommand struct {
 }
 
 type Task struct {
-	Id        string
-	Name      string
-	DueTime   string
-	IsArchive bool
-	Routines  []*Routine
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id           string
+	Name         string
+	DueTime      string
+	IsArchive    bool
+	TodayRoutine *Routine
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 func CreateTask(command *CreateTaskCommand) (*Task, error) {
@@ -32,12 +31,18 @@ func CreateTask(command *CreateTaskCommand) (*Task, error) {
 		CreatedAt: time.Now().Local(),
 		UpdatedAt: time.Now().Local(),
 	}
-	task.AddRoutine(custom_dates.TodayBeginningHour())
 	err := task.IsValid()
-
 	if err != nil {
 		return nil, err
 	}
+
+	routine, err := CreateRoutine()
+	if err != nil {
+		return nil, err
+	}
+
+	task.TodayRoutine = routine
+
 	return task, nil
 }
 
@@ -57,12 +62,35 @@ func (ta *Task) IsValid() error {
 	return nil
 }
 
-func (ta *Task) AddRoutine(dueTime time.Time) error {
-	routine, err := CreateRoutine(ta, dueTime)
+func (ta *Task) CreateTodayRoutine() error {
+	routine, err := CreateRoutine()
 	if err != nil {
 		return err
 	}
-	ta.Routines = append(ta.Routines, routine)
+
+	ta.TodayRoutine = routine
+
+	return nil
+}
+
+func (ta *Task) FinishTodayRoutine() error {
+	if ta.TodayRoutine == nil {
+		return &customerrors.BusinessValidationError{
+			Message: "No today routine registered to finish",
+		}
+	}
+	ta.TodayRoutine.Finish()
+
+	return nil
+}
+
+func (ta *Task) UnfinishTodayRoutine() error {
+	if ta.TodayRoutine == nil {
+		return &customerrors.BusinessValidationError{
+			Message: "No today routine registered to finish",
+		}
+	}
+	ta.TodayRoutine.Unfinish()
 
 	return nil
 }

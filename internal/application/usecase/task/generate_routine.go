@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
@@ -18,41 +19,33 @@ func NewGenerateRoutineUseCase(taskRepository repository.ITaskRepository) *Gener
 
 func (gr *GenerateRoutineUseCase) Execute() error {
 
+	fmt.Printf("Start generate routine on %s\n", time.Now())
+
 	onlyArchivedTasks := false
-	tasks, err := gr.TaskRepository.ListBy(onlyArchivedTasks)
+	tasks, err := gr.TaskRepository.FindAllBy(onlyArchivedTasks)
 	if err != nil {
 		return err
 	}
 
 	for _, task := range tasks {
-		task.AddRoutine(time.Now())
+
+		if task.TodayRoutine != nil {
+			fmt.Printf("Task %s already have today routine\n", task.Name)
+			continue
+		}
+
+		task.CreateTodayRoutine()
+		err = gr.TaskRepository.CreateTodayRoutine(task)
+
+		if err != nil {
+			fmt.Println(err.Error())
+			continue
+		}
+
+		fmt.Printf("Success to create routine to task %s\n", task.Name)
 	}
 
+	fmt.Println("Finished to create routines")
+
 	return nil
-
-	// command := &entity.CreateTaskCommand{
-	// 	Name:    input.Name,
-	// 	DueTime: input.DueTime,
-	// }
-
-	// task, err := entity.CreateTask(command)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// if err := ct.TaskRepository.Create(task); err != nil {
-	// 	return nil, err
-	// }
-
-	// output := &taskdto.TaskOutputDTO{
-	// 	Id:         task.Id,
-	// 	Name:       task.Name,
-	// 	DueTime:    task.DueTime,
-	// 	IsArchived: task.IsArchive,
-	// 	CreatedAt:  task.CreatedAt,
-	// 	UpdatedAt:  task.UpdatedAt,
-	// }
-
-	// return output, nil
-
 }

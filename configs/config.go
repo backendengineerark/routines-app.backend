@@ -3,14 +3,14 @@ package configs
 import "github.com/spf13/viper"
 
 type Config struct {
-	WebServerPort          string `mapstructure:"SERVER_PORT"`
-	DBDriver               string `mapstructure:"DB_DRIVER"`
-	DBHost                 string `mapstructure:"DB_HOST"`
-	DBPort                 string `mapstructure:"DB_PORT"`
-	DBUser                 string `mapstructure:"DB_USER"`
-	DBPassword             string `mapstructure:"DB_PASSWORD"`
-	DBName                 string `mapstructure:"DB_NAME"`
-	CreateRoutinesTaskCron string `mapstructure:"CREATE_ROUTINES_TASK_CRON"`
+	WebServerPort              string `mapstructure:"SERVER_PORT"`
+	DBDriver                   string `mapstructure:"DB_DRIVER"`
+	DBHost                     string `mapstructure:"DB_HOST"`
+	DBPort                     string `mapstructure:"DB_PORT"`
+	DBUser                     string `mapstructure:"DB_USER"`
+	DBPassword                 string `mapstructure:"DB_PASSWORD"`
+	DBName                     string `mapstructure:"DB_NAME"`
+	CreateTodayRoutineTaskCron string `mapstructure:"CREATE_ROUTINES_TASK_CRON"`
 }
 
 func LoadConfig(path string) *Config {

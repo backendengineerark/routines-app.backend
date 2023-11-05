@@ -1,14 +1,14 @@
 package repository
 
 import (
-	"time"
-
 	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
 
 type ITaskRepository interface {
 	Create(task *entity.Task) error
+	FindById(id string) (*entity.Task, error)
 	Update(task *entity.Task) error
-	ListBy(isArchived bool) ([]entity.Task, error)
-	ListRoutine(date time.Time) ([]entity.Routine, error)
+	CreateTodayRoutine(task *entity.Task) error
+	UpdateTodayRoutine(task *entity.Task) error
+	FindAllBy(isArchived bool) ([]*entity.Task, error)
 }

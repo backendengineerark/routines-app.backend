@@ -7,6 +7,7 @@ import (
 
 	usecase "github.com/backendengineerark/routines-app/internal/application/usecase/task"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
+	"github.com/go-chi/chi/v5"
 )
 
 type RoutineHandler struct {
@@ -45,4 +46,44 @@ func (th *RoutineHandler) ListRoutine(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (th *RoutineHandler) FinishRoutine(w http.ResponseWriter, r *http.Request) {
+
+	taskId := chi.URLParam(r, "task_id")
+	if taskId == "" {
+		http.Error(w, "task id required", http.StatusBadRequest)
+		return
+	}
+
+	finishRoutinekUseCase := usecase.NewFinishRoutineUseCase(th.TaskRepository)
+
+	err := finishRoutinekUseCase.Execute(taskId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func (th *RoutineHandler) UnfinishRoutine(w http.ResponseWriter, r *http.Request) {
+
+	taskId := chi.URLParam(r, "task_id")
+	if taskId == "" {
+		http.Error(w, "task id required", http.StatusBadRequest)
+		return
+	}
+
+	unfinishRoutinekUseCase := usecase.NewUnfinishRoutineUseCase(th.TaskRepository)
+
+	err := unfinishRoutinekUseCase.Execute(taskId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
 }

@@ -17,7 +17,7 @@ func NewListTaskUseCase(taskRepository repository.ITaskRepository) *ListTaskUseC
 
 func (ct *ListTaskUseCase) Execute(isArchived bool) ([]taskdto.TaskOutputDTO, error) {
 
-	tasks, err := ct.TaskRepository.ListBy(isArchived)
+	tasks, err := ct.TaskRepository.FindAllBy(isArchived)
 
 	if err != nil {
 		return nil, err

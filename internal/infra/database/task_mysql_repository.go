@@ -2,8 +2,8 @@ package database
 
 import (
 	"database/sql"
-	"time"
 
+	"github.com/backendengineerark/routines-app/internal/domain/common/custom_dates"
 	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
 
@@ -35,22 +35,30 @@ func (tr *TaskMysqlRepository) Create(task *entity.Task) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(task.Routines[0].Id, task.Id, task.Routines[0].ReferenceDate, task.Routines[0].IsFinished, task.Routines[0].CreatedAt, task.Routines[0].Task.UpdatedAt)
+	_, err = stmt.Exec(task.TodayRoutine.Id, task.Id, task.TodayRoutine.ReferenceDate, task.TodayRoutine.IsFinished, task.TodayRoutine.CreatedAt, task.TodayRoutine.UpdatedAt)
 	if err != nil {
 		return err
 	}
+
+	tr.CreateTodayRoutine(task)
 
 	return nil
 }
 
 func (tr *TaskMysqlRepository) Update(task *entity.Task) error {
-	stmt, err := tr.DB.Prepare("update tasks set name = ?, due_time = ?, is_archived = ?, updated_at = ?")
+	stmt, err := tr.DB.Prepare("update tasks set name = ?, due_time = ?, is_archived = ?, updated_at = ? where id = ?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(task.Name, task.DueTime, task.IsArchive, task.UpdatedAt)
+	_, err = stmt.Exec(task.Name, task.DueTime, task.IsArchive, task.UpdatedAt, task.Id)
+	if err != nil {
+		return err
+	}
+
+	var exists = ""
+	err = tr.DB.QueryRow("select id from routines where id = ?").Scan(exists)
 	if err != nil {
 		return err
 	}
@@ -58,8 +66,59 @@ func (tr *TaskMysqlRepository) Update(task *entity.Task) error {
 	return nil
 }
 
-func (tr *TaskMysqlRepository) ListBy(isArchived bool) ([]entity.Task, error) {
-	stmt, err := tr.DB.Prepare("select id, name, due_time, is_archived, created_at, updated_at from tasks where is_archived = ? order by created_at desc")
+func (tr *TaskMysqlRepository) CreateTodayRoutine(task *entity.Task) error {
+	stmt, err := tr.DB.Prepare("insert into routines(id, tasks_id, reference_date, is_finished, created_at, updated_at) values (?, ?, ?, ?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(task.TodayRoutine.Id, task.Id, task.TodayRoutine.ReferenceDate, task.TodayRoutine.IsFinished, task.TodayRoutine.CreatedAt, task.TodayRoutine.UpdatedAt)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tr *TaskMysqlRepository) UpdateTodayRoutine(task *entity.Task) error {
+	stmt, err := tr.DB.Prepare("update routines set is_finished = ?, updated_at = ? where id = ?")
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(task.TodayRoutine.IsFinished, task.TodayRoutine.UpdatedAt, task.TodayRoutine.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tr *TaskMysqlRepository) FindById(id string) (*entity.Task, error) {
+	stmt, err := tr.DB.Prepare("SELECT t.id, t.name, t.due_time, t.is_archived, t.created_at, t.created_at, from tasks t where t.id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	var task entity.Task
+
+	err = stmt.QueryRow(id).Scan(&task.Id, &task.Name, &task.DueTime, &task.IsArchive, &task.CreatedAt, &task.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	routine, err := tr.FindTodayRoutineByTask(task)
+	if err == nil {
+		task.TodayRoutine = routine
+	}
+
+	return &task, nil
+}
+
+func (tr *TaskMysqlRepository) FindAllBy(isArchived bool) ([]*entity.Task, error) {
+	stmt, err := tr.DB.Prepare("SELECT t.id, t.name, t.due_time, t.is_archived, t.created_at, t.updated_at from tasks t where t.is_archived = ? order by t.created_at desc")
 	if err != nil {
 		return nil, err
 	}
@@ -70,51 +129,40 @@ func (tr *TaskMysqlRepository) ListBy(isArchived bool) ([]entity.Task, error) {
 		return nil, err
 	}
 
-	tasks := []entity.Task{}
+	tasks := []*entity.Task{}
 
 	for rows.Next() {
 		var task entity.Task
 
 		err := rows.Scan(&task.Id, &task.Name, &task.DueTime, &task.IsArchive, &task.CreatedAt, &task.UpdatedAt)
-
 		if err != nil {
 			return nil, err
 		}
 
-		tasks = append(tasks, task)
+		routine, err := tr.FindTodayRoutineByTask(task)
+		if err == nil {
+			task.TodayRoutine = routine
+		}
+		tasks = append(tasks, &task)
 	}
 
 	return tasks, nil
 }
 
-func (tr *TaskMysqlRepository) ListRoutine(date time.Time) ([]entity.Routine, error) {
-	stmt, err := tr.DB.Prepare("SELECT r.id, r.reference_date, r.is_finished, r.created_at, r.updated_at, t.id, t.name, t.due_time, t.is_archived, t.created_at, t.updated_at from routines r inner join tasks t on t.id = r.tasks_id where reference_date = ?")
+func (tr *TaskMysqlRepository) FindTodayRoutineByTask(task entity.Task) (*entity.Routine, error) {
+	var routine entity.Routine
+	today := custom_dates.TodayBeginningHour()
+
+	stmt, err := tr.DB.Prepare("SELECT r.id, r.reference_date, r.is_finished, r.created_at, r.updated_at from routines r where r.tasks_id = ? and r.reference_date = ?")
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(date)
+	err = stmt.QueryRow(task.Id, today).Scan(&routine.Id, &routine.ReferenceDate, &routine.IsFinished, &routine.CreatedAt, &routine.UpdatedAt)
+
 	if err != nil {
 		return nil, err
 	}
-
-	routines := []entity.Routine{}
-
-	for rows.Next() {
-		var routine entity.Routine
-		var task entity.Task
-
-		err := rows.Scan(&routine.Id, &routine.ReferenceDate, &routine.IsFinished, &routine.CreatedAt, &routine.UpdatedAt, &task.Id, &task.Name, &task.DueTime, &task.IsArchive, &task.CreatedAt, &task.UpdatedAt)
-
-		if err != nil {
-			return nil, err
-		}
-
-		routine.Task = &task
-
-		routines = append(routines, routine)
-	}
-
-	return routines, nil
+	return &routine, nil
 }

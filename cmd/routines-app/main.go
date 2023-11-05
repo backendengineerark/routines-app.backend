@@ -51,12 +51,11 @@ func main() {
 	routineHandler := webhandler.NewRoutineHandler(taskRepository)
 	r.Route("/routines", func(r chi.Router) {
 		r.Get("/", routineHandler.ListRoutine)
-		// r.Get("/{id}", productHandler.GetProduct)
-		// r.Put("/{id}", productHandler.UpdateProduct)
-		// r.Delete("/{id}", productHandler.DeleteProduct)
+		r.Post("/{task_id}/today-finish", routineHandler.FinishRoutine)
+		r.Post("/{task_id}/today-unfinish", routineHandler.UnfinishRoutine)
 	})
 
-	go cron.ExecuteCronJobs(configs.CreateRoutinesTaskCron, taskRepository)
+	go cron.ExecuteCronJobs(configs.CreateTodayRoutineTaskCron, taskRepository)
 	fmt.Printf("Starting web server on port %s", configs.WebServerPort)
 	http.ListenAndServe(":"+configs.WebServerPort, r)
 }
