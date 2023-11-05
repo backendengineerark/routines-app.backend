@@ -3,6 +3,7 @@ package entity
 import (
 	"time"
 
+	"github.com/backendengineerark/routines-app/internal/domain/common/custom_dates"
 	customerrors "github.com/backendengineerark/routines-app/internal/domain/common/custom_errors"
 	"github.com/google/uuid"
 )
@@ -28,10 +29,10 @@ func CreateTask(command *CreateTaskCommand) (*Task, error) {
 		Name:      command.Name,
 		DueTime:   command.DueTime,
 		IsArchive: false,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: time.Now().Local(),
+		UpdatedAt: time.Now().Local(),
 	}
-	task.AddRoutine(time.Now())
+	task.AddRoutine(custom_dates.TodayBeginningHour())
 	err := task.IsValid()
 
 	if err != nil {

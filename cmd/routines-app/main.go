@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/backendengineerark/routines-app/configs"
 	"github.com/backendengineerark/routines-app/internal/cron"
@@ -15,6 +16,9 @@ import (
 )
 
 func main() {
+	loc, _ := time.LoadLocation("America/Sao_Paulo")
+	time.Local = loc
+
 	configs := configs.LoadConfig("../../.")
 
 	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
@@ -39,6 +43,14 @@ func main() {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", taskHandler.Create)
 		r.Get("/", taskHandler.FindAll)
+		// r.Get("/{id}", productHandler.GetProduct)
+		// r.Put("/{id}", productHandler.UpdateProduct)
+		// r.Delete("/{id}", productHandler.DeleteProduct)
+	})
+
+	routineHandler := webhandler.NewRoutineHandler(taskRepository)
+	r.Route("/routines", func(r chi.Router) {
+		r.Get("/", routineHandler.ListRoutine)
 		// r.Get("/{id}", productHandler.GetProduct)
 		// r.Put("/{id}", productHandler.UpdateProduct)
 		// r.Delete("/{id}", productHandler.DeleteProduct)
