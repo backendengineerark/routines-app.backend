@@ -96,7 +96,7 @@ func (tr *TaskMysqlRepository) UpdateTodayRoutine(task *entity.Task) error {
 }
 
 func (tr *TaskMysqlRepository) FindById(id string) (*entity.Task, error) {
-	stmt, err := tr.DB.Prepare("SELECT t.id, t.name, t.due_time, t.is_archived, t.created_at, t.created_at, from tasks t where t.id = ?")
+	stmt, err := tr.DB.Prepare("SELECT t.id, t.name, t.due_time, t.is_archived, t.created_at, t.created_at from tasks t where t.id = ?")
 	if err != nil {
 		return nil, err
 	}
