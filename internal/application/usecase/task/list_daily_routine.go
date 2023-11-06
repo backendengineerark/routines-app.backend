@@ -1,10 +1,12 @@
 package usecase
 
 import (
+	"sort"
 	"time"
 
 	taskdto "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
+	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
 
 type ListRoutineUseCase struct {
@@ -25,6 +27,8 @@ func (ct *ListRoutineUseCase) Execute(date time.Time) ([]taskdto.RoutineOutputDT
 	if err != nil {
 		return nil, err
 	}
+
+	tasks = ct.sort(tasks)
 
 	output := []taskdto.RoutineOutputDTO{}
 	for _, task := range tasks {
@@ -51,4 +55,11 @@ func (ct *ListRoutineUseCase) Execute(date time.Time) ([]taskdto.RoutineOutputDT
 
 	return output, nil
 
+}
+
+func (ct *ListRoutineUseCase) sort(tasks []*entity.Task) []*entity.Task {
+	sort.SliceStable(tasks, func(i, j int) bool {
+		return tasks[i].DueTime < tasks[j].DueTime
+	})
+	return tasks
 }
