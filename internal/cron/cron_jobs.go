@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	usecase "github.com/backendengineerark/routines-app/internal/application/usecase/task"
+	usecase "github.com/backendengineerark/routines-app/internal/application/usecase/routine"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
 	"github.com/go-co-op/gocron"
 )

@@ -1,14 +1,21 @@
 package repository
 
 import (
-	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
+	"time"
+
+	metricentity "github.com/backendengineerark/routines-app/internal/domain/metric/entity"
+	taskentity "github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
 
 type ITaskRepository interface {
-	Create(task *entity.Task) error
-	FindById(id string) (*entity.Task, error)
-	Update(task *entity.Task) error
-	CreateTodayRoutine(task *entity.Task) error
-	UpdateTodayRoutine(task *entity.Task) error
-	FindAllBy(isArchived bool) ([]*entity.Task, error)
+	Create(task *taskentity.Task) error
+	FindById(id string) (*taskentity.Task, error)
+	Update(task *taskentity.Task) error
+	CreateTodayRoutine(task *taskentity.Task) error
+	UpdateTodayRoutine(task *taskentity.Task) error
+	FindAllBy(isArchived bool) ([]*taskentity.Task, error)
+}
+
+type IMetricRepository interface {
+	FindAllRoutinesByRangeDate(initial time.Time, end time.Time) ([]*metricentity.Metric, error)
 }

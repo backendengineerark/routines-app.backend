@@ -4,6 +4,7 @@ import (
 	"sort"
 	"time"
 
+	routinedto "github.com/backendengineerark/routines-app/internal/application/usecase/routine/dto"
 	taskdto "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
 	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
@@ -19,7 +20,7 @@ func NewListRoutineUseCase(taskRepository repository.ITaskRepository) *ListRouti
 	}
 }
 
-func (ct *ListRoutineUseCase) Execute(date time.Time) ([]taskdto.RoutineOutputDTO, error) {
+func (ct *ListRoutineUseCase) Execute(date time.Time) ([]routinedto.RoutineOutputDTO, error) {
 
 	isArchived := false
 	tasks, err := ct.TaskRepository.FindAllBy(isArchived)
@@ -30,13 +31,13 @@ func (ct *ListRoutineUseCase) Execute(date time.Time) ([]taskdto.RoutineOutputDT
 
 	tasks = ct.sort(tasks)
 
-	output := []taskdto.RoutineOutputDTO{}
+	output := []routinedto.RoutineOutputDTO{}
 	for _, task := range tasks {
 		if task.TodayRoutine == nil {
 			continue
 		}
 
-		output = append(output, taskdto.RoutineOutputDTO{
+		output = append(output, routinedto.RoutineOutputDTO{
 			Id:            task.TodayRoutine.Id,
 			ReferenceDate: task.TodayRoutine.ReferenceDate,
 			IsFinished:    task.TodayRoutine.IsFinished,

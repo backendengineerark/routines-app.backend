@@ -28,6 +28,7 @@ func main() {
 	defer db.Close()
 
 	taskRepository := database.NewTaskMysqlRepository(db)
+	metricRepository := database.NewMetricMysqlRepository(db)
 
 	r := chi.NewRouter()
 
@@ -43,9 +44,6 @@ func main() {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", taskHandler.Create)
 		r.Get("/", taskHandler.FindAll)
-		// r.Get("/{id}", productHandler.GetProduct)
-		// r.Put("/{id}", productHandler.UpdateProduct)
-		// r.Delete("/{id}", productHandler.DeleteProduct)
 	})
 
 	routineHandler := webhandler.NewRoutineHandler(taskRepository)
@@ -53,6 +51,11 @@ func main() {
 		r.Get("/", routineHandler.ListRoutine)
 		r.Post("/{task_id}/today-finish", routineHandler.FinishRoutine)
 		r.Post("/{task_id}/today-unfinish", routineHandler.UnfinishRoutine)
+	})
+
+	metricHandler := webhandler.NewMetricHandler(metricRepository)
+	r.Route("/metrics", func(r chi.Router) {
+		r.Get("/", metricHandler.GetMetric)
 	})
 
 	go cron.ExecuteCronJobs(configs.CreateTodayRoutineTaskCron, taskRepository)
