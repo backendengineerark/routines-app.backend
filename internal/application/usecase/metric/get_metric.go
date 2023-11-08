@@ -67,7 +67,7 @@ func getListDays(initial time.Time, end time.Time) []time.Time {
 	days := end.Sub(initial).Hours() / 24
 	var dates []time.Time
 
-	for i := 0; i <= int(days); i++ {
+	for i := 0; i < int(days); i++ {
 		dates = append(dates, initial.AddDate(0, 0, i))
 	}
 	return dates
