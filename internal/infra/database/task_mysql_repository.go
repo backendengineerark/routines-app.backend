@@ -57,8 +57,22 @@ func (tr *TaskMysqlRepository) Update(task *entity.Task) error {
 		return err
 	}
 
-	var exists = ""
-	err = tr.DB.QueryRow("select id from routines where id = ?").Scan(exists)
+	return nil
+}
+
+func (tr *TaskMysqlRepository) Delete(task *entity.Task) error {
+	err := tr.deleteAllroutinesBy(task)
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tr.DB.Prepare("delete from tasks where id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(task.Id)
 	if err != nil {
 		return err
 	}
@@ -96,7 +110,7 @@ func (tr *TaskMysqlRepository) UpdateTodayRoutine(task *entity.Task) error {
 }
 
 func (tr *TaskMysqlRepository) FindById(id string) (*entity.Task, error) {
-	stmt, err := tr.DB.Prepare("SELECT t.id, t.name, t.due_time, t.is_archived, t.created_at, t.created_at from tasks t where t.id = ?")
+	stmt, err := tr.DB.Prepare("select t.id, t.name, t.due_time, t.is_archived, t.created_at, t.created_at from tasks t where t.id = ?")
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +132,7 @@ func (tr *TaskMysqlRepository) FindById(id string) (*entity.Task, error) {
 }
 
 func (tr *TaskMysqlRepository) FindAllBy(isArchived bool) ([]*entity.Task, error) {
-	stmt, err := tr.DB.Prepare("SELECT t.id, t.name, t.due_time, t.is_archived, t.created_at, t.updated_at from tasks t where t.is_archived = ? order by t.created_at desc")
+	stmt, err := tr.DB.Prepare("select t.id, t.name, t.due_time, t.is_archived, t.created_at, t.updated_at from tasks t where t.is_archived = ? order by t.created_at desc")
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +167,7 @@ func (tr *TaskMysqlRepository) FindTodayRoutineByTask(task entity.Task) (*entity
 	var routine entity.Routine
 	today := custom_dates.TodayBeginningHour()
 
-	stmt, err := tr.DB.Prepare("SELECT r.id, r.reference_date, r.is_finished, r.created_at, r.updated_at from routines r where r.tasks_id = ? and r.reference_date = ?")
+	stmt, err := tr.DB.Prepare("select r.id, r.reference_date, r.is_finished, r.created_at, r.updated_at from routines r where r.tasks_id = ? and r.reference_date = ?")
 	if err != nil {
 		return nil, err
 	}
@@ -165,4 +179,19 @@ func (tr *TaskMysqlRepository) FindTodayRoutineByTask(task entity.Task) (*entity
 		return nil, err
 	}
 	return &routine, nil
+}
+
+func (tr *TaskMysqlRepository) deleteAllroutinesBy(task *entity.Task) error {
+	stmt, err := tr.DB.Prepare("delete from routines where tasks_id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(task.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

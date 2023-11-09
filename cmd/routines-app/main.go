@@ -44,6 +44,9 @@ func main() {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", taskHandler.Create)
 		r.Get("/", taskHandler.FindAll)
+		r.Delete("/{task_id}", taskHandler.Delete)
+		r.Post("/{task_id}/archive", taskHandler.Archive)
+		r.Post("/{task_id}/unarchive", taskHandler.Unarchive)
 	})
 
 	routineHandler := webhandler.NewRoutineHandler(taskRepository)

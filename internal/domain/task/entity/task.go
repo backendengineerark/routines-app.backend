@@ -62,6 +62,14 @@ func (ta *Task) IsValid() error {
 	return nil
 }
 
+func (ta *Task) Archive() {
+	ta.IsArchive = true
+}
+
+func (ta *Task) Unarchive() {
+	ta.IsArchive = false
+}
+
 func (ta *Task) CreateTodayRoutine() error {
 	routine, err := CreateRoutine()
 	if err != nil {

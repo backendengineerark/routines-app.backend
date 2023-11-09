@@ -11,6 +11,7 @@ type ITaskRepository interface {
 	Create(task *taskentity.Task) error
 	FindById(id string) (*taskentity.Task, error)
 	Update(task *taskentity.Task) error
+	Delete(task *taskentity.Task) error
 	CreateTodayRoutine(task *taskentity.Task) error
 	UpdateTodayRoutine(task *taskentity.Task) error
 	FindAllBy(isArchived bool) ([]*taskentity.Task, error)

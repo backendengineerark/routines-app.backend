@@ -8,6 +8,7 @@ import (
 	usecase "github.com/backendengineerark/routines-app/internal/application/usecase/task"
 	taskdto "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
+	"github.com/go-chi/chi/v5"
 )
 
 type TaskHandler struct {
@@ -74,4 +75,49 @@ func (th *TaskHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (th *TaskHandler) Archive(w http.ResponseWriter, r *http.Request) {
+	taskIdParam := chi.URLParam(r, "task_id")
+
+	createTaskUseCase := usecase.NewArchiveTaskUseCase(th.TaskRepository)
+
+	err := createTaskUseCase.Execute(taskIdParam)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func (th *TaskHandler) Unarchive(w http.ResponseWriter, r *http.Request) {
+	taskIdParam := chi.URLParam(r, "task_id")
+
+	createTaskUseCase := usecase.NewUnarchiveTaskUseCase(th.TaskRepository)
+
+	err := createTaskUseCase.Execute(taskIdParam)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func (th *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	taskIdParam := chi.URLParam(r, "task_id")
+
+	createTaskUseCase := usecase.NewDeleteTaskUseCase(th.TaskRepository)
+
+	err := createTaskUseCase.Execute(taskIdParam)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
 }
