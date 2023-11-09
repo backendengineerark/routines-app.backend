@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	taskdto "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto"
+	taskdtolist "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto/list"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
 )
 
@@ -15,7 +15,7 @@ func NewListTaskUseCase(taskRepository repository.ITaskRepository) *ListTaskUseC
 	}
 }
 
-func (ct *ListTaskUseCase) Execute(isArchived bool) ([]taskdto.TaskOutputDTO, error) {
+func (ct *ListTaskUseCase) Execute(isArchived bool) ([]taskdtolist.TaskListOutputDTO, error) {
 
 	tasks, err := ct.TaskRepository.FindAllBy(isArchived)
 
@@ -23,15 +23,17 @@ func (ct *ListTaskUseCase) Execute(isArchived bool) ([]taskdto.TaskOutputDTO, er
 		return nil, err
 	}
 
-	output := []taskdto.TaskOutputDTO{}
+	output := []taskdtolist.TaskListOutputDTO{}
 	for _, task := range tasks {
-		output = append(output, taskdto.TaskOutputDTO{
-			Id:         task.Id,
-			Name:       task.Name,
-			DueTime:    task.DueTime,
-			IsArchived: task.IsArchive,
-			CreatedAt:  task.CreatedAt,
-			UpdatedAt:  task.UpdatedAt,
+		output = append(output, taskdtolist.TaskListOutputDTO{
+			Id:             task.Id,
+			Name:           task.Name,
+			DueTime:        task.DueTime,
+			IsArchived:     task.IsArchive,
+			CompletedTimes: task.CompletedTimes,
+			FailedTimes:    task.FailedTimes,
+			CreatedAt:      task.CreatedAt,
+			UpdatedAt:      task.UpdatedAt,
 		})
 	}
 

@@ -6,7 +6,8 @@ import (
 	"strconv"
 
 	usecase "github.com/backendengineerark/routines-app/internal/application/usecase/task"
-	taskdto "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto"
+	taskdtocreate "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto/create"
+	taskdtoupdate "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto/update"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
 	"github.com/go-chi/chi/v5"
 )
@@ -22,7 +23,7 @@ func NewTaskHandler(taskRepository repository.ITaskRepository) *TaskHandler {
 }
 
 func (th *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var input taskdto.TaskInputDTO
+	var input taskdtocreate.TaskCreateInputDTO
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
@@ -36,6 +37,36 @@ func (th *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	output, err := createTaskUseCase.Execute(&input)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(output)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (th *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
+	taskIdParam := chi.URLParam(r, "task_id")
+
+	var input taskdtoupdate.TaskUpdateInputDTO
+	err := json.NewDecoder(r.Body).Decode(&input)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	updateTaskUseCase := usecase.NewUpdateTaskUseCase(th.TaskRepository)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	output, err := updateTaskUseCase.Execute(taskIdParam, &input)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

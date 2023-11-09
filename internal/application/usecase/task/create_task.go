@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	taskdto "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto"
+	taskdtocreate "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto/create"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
 	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
@@ -16,7 +16,7 @@ func NewCreateTaskUseCase(taskRepository repository.ITaskRepository) *CreateTask
 	}
 }
 
-func (ct *CreateTaskUseCase) Execute(input *taskdto.TaskInputDTO) (*taskdto.TaskOutputDTO, error) {
+func (ct *CreateTaskUseCase) Execute(input *taskdtocreate.TaskCreateInputDTO) (*taskdtocreate.TaskCreateOutputDTO, error) {
 	command := &entity.CreateTaskCommand{
 		Name:    input.Name,
 		DueTime: input.DueTime,
@@ -31,7 +31,7 @@ func (ct *CreateTaskUseCase) Execute(input *taskdto.TaskInputDTO) (*taskdto.Task
 		return nil, err
 	}
 
-	output := &taskdto.TaskOutputDTO{
+	output := &taskdtocreate.TaskCreateOutputDTO{
 		Id:         task.Id,
 		Name:       task.Name,
 		DueTime:    task.DueTime,

@@ -132,7 +132,7 @@ func (tr *TaskMysqlRepository) FindById(id string) (*entity.Task, error) {
 }
 
 func (tr *TaskMysqlRepository) FindAllBy(isArchived bool) ([]*entity.Task, error) {
-	stmt, err := tr.DB.Prepare("select t.id, t.name, t.due_time, t.is_archived, t.created_at, t.updated_at from tasks t where t.is_archived = ? order by t.created_at desc")
+	stmt, err := tr.DB.Prepare("select t.id, t.name, t.due_time, t.is_archived, t.created_at, t.updated_at, (SELECT COUNT(*) FROM routines r where is_finished = true and r.tasks_id  = t.id) as completed_times, (SELECT COUNT(*) FROM routines r where is_finished = false and r.tasks_id  = t.id) as failed_times from tasks t where t.is_archived = ? order by t.due_time asc")
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (tr *TaskMysqlRepository) FindAllBy(isArchived bool) ([]*entity.Task, error
 	for rows.Next() {
 		var task entity.Task
 
-		err := rows.Scan(&task.Id, &task.Name, &task.DueTime, &task.IsArchive, &task.CreatedAt, &task.UpdatedAt)
+		err := rows.Scan(&task.Id, &task.Name, &task.DueTime, &task.IsArchive, &task.CreatedAt, &task.UpdatedAt, &task.CompletedTimes, &task.FailedTimes)
 		if err != nil {
 			return nil, err
 		}

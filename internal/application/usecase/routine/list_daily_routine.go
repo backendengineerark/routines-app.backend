@@ -5,7 +5,7 @@ import (
 	"time"
 
 	routinedto "github.com/backendengineerark/routines-app/internal/application/usecase/routine/dto"
-	taskdto "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto"
+	taskdtolist "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto/list"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
 	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
@@ -43,7 +43,7 @@ func (ct *ListRoutineUseCase) Execute(date time.Time) ([]routinedto.RoutineOutpu
 			IsFinished:    task.TodayRoutine.IsFinished,
 			CreatedAt:     task.TodayRoutine.CreatedAt,
 			UpdatedAt:     task.TodayRoutine.UpdatedAt,
-			Task: &taskdto.TaskOutputDTO{
+			Task: &taskdtolist.TaskListOutputDTO{
 				Id:         task.Id,
 				Name:       task.Name,
 				DueTime:    task.DueTime,

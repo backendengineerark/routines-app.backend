@@ -13,13 +13,15 @@ type CreateTaskCommand struct {
 }
 
 type Task struct {
-	Id           string
-	Name         string
-	DueTime      string
-	IsArchive    bool
-	TodayRoutine *Routine
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	Id             string
+	Name           string
+	DueTime        string
+	IsArchive      bool
+	CompletedTimes int64
+	FailedTimes    int64
+	TodayRoutine   *Routine
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 func CreateTask(command *CreateTaskCommand) (*Task, error) {
@@ -60,6 +62,14 @@ func (ta *Task) IsValid() error {
 	}
 
 	return nil
+}
+
+func (ta *Task) ChangeName(newName string) {
+	ta.Name = newName
+}
+
+func (ta *Task) ChangeTime(newTime string) {
+	ta.DueTime = newTime
 }
 
 func (ta *Task) Archive() {

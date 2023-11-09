@@ -1,8 +1,8 @@
-package taskdto
+package taskdtocreate
 
 import "time"
 
-type TaskOutputDTO struct {
+type TaskCreateOutputDTO struct {
 	Id         string    `json:"id"`
 	Name       string    `json:"name"`
 	DueTime    string    `json:"due_time"`
