@@ -62,6 +62,11 @@ func main() {
 		r.Get("/", metricHandler.GetMetric)
 	})
 
+	weekdayHandler := webhandler.NewWeekdayHandler(taskRepository)
+	r.Route("/weekdays", func(r chi.Router) {
+		r.Get("/", weekdayHandler.GetWeekday)
+	})
+
 	go cron.ExecuteCronJobs(configs.CreateTodayRoutineTaskCron, taskRepository)
 	fmt.Printf("Starting web server on port %s", configs.WebServerPort)
 	http.ListenAndServe(":"+configs.WebServerPort, r)

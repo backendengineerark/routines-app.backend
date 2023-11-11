@@ -20,6 +20,7 @@ type Task struct {
 	CompletedTimes int64
 	FailedTimes    int64
 	TodayRoutine   *Routine
+	Weekdays       []*Weekday
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

@@ -163,6 +163,27 @@ func (tr *TaskMysqlRepository) FindAllBy(isArchived bool) ([]*entity.Task, error
 	return tasks, nil
 }
 
+func (tr *TaskMysqlRepository) FindAllWeekday() ([]*entity.Weekday, error) {
+	rows, err := tr.DB.Query("select id, name, number_day from weekdays order by number_day asc")
+	if err != nil {
+		return nil, err
+	}
+
+	var weekdays []*entity.Weekday
+
+	for rows.Next() {
+		var weekday entity.Weekday
+
+		err := rows.Scan(&weekday.Id, &weekday.Name, &weekday.NumberDay)
+		if err != nil {
+			return nil, err
+		}
+		weekdays = append(weekdays, &weekday)
+	}
+
+	return weekdays, nil
+}
+
 func (tr *TaskMysqlRepository) FindTodayRoutineByTask(task entity.Task) (*entity.Routine, error) {
 	var routine entity.Routine
 	today := custom_dates.TodayBeginningHour()
