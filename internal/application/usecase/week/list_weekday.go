@@ -15,15 +15,15 @@ func CreateListWeekdayUseCase(repository repository.ITaskRepository) *ListWeekda
 	}
 }
 
-func (ld *ListWeekdayUseCase) Execute() ([]weekdaydtolist.WeekdayListOutputDTO, error) {
+func (ld *ListWeekdayUseCase) Execute() ([]weekdaydtolist.WeekdayOutputDTO, error) {
 	weekdays, err := ld.TaskRepository.FindAllWeekday()
 	if err != nil {
 		return nil, err
 	}
 
-	output := []weekdaydtolist.WeekdayListOutputDTO{}
+	output := []weekdaydtolist.WeekdayOutputDTO{}
 	for _, weekday := range weekdays {
-		output = append(output, weekdaydtolist.WeekdayListOutputDTO{
+		output = append(output, weekdaydtolist.WeekdayOutputDTO{
 			Id:        weekday.Id,
 			Name:      weekday.Name,
 			NumberDay: weekday.NumberDay,

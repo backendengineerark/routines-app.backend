@@ -1,6 +1,8 @@
 package usecase
 
-import "github.com/backendengineerark/routines-app/internal/domain/repository"
+import (
+	"github.com/backendengineerark/routines-app/internal/domain/repository"
+)
 
 type DeleteTaskUseCase struct {
 	TaskRepository repository.ITaskRepository
@@ -17,6 +19,7 @@ func (at *DeleteTaskUseCase) Execute(taskId string) error {
 	if err != nil {
 		return err
 	}
+	task.ClearWeekdays()
 
 	err = at.TaskRepository.Delete(task)
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 type CreateTaskCommand struct {
 	Name    string
 	DueTime string
+	Days    []string
 }
 
 type Task struct {
@@ -25,7 +26,7 @@ type Task struct {
 	UpdatedAt      time.Time
 }
 
-func CreateTask(command *CreateTaskCommand) (*Task, error) {
+func CreateTask(command *CreateTaskCommand, weekdays []*Weekday) (*Task, error) {
 	task := &Task{
 		Id:        uuid.NewString(),
 		Name:      command.Name,
@@ -39,12 +40,15 @@ func CreateTask(command *CreateTaskCommand) (*Task, error) {
 		return nil, err
 	}
 
-	routine, err := CreateRoutine()
-	if err != nil {
-		return nil, err
-	}
+	task.Weekdays = weekdays
 
-	task.TodayRoutine = routine
+	if task.shouldCreateTodayRotine() {
+		routine, err := CreateRoutine()
+		if err != nil {
+			return nil, err
+		}
+		task.TodayRoutine = routine
+	}
 
 	return task, nil
 }
@@ -81,6 +85,14 @@ func (ta *Task) Unarchive() {
 	ta.IsArchive = false
 }
 
+func (ta *Task) NewWeekdays(weekdays []*Weekday) {
+	ta.Weekdays = weekdays
+}
+
+func (ta *Task) ClearWeekdays() {
+	ta.Weekdays = []*Weekday{}
+}
+
 func (ta *Task) CreateTodayRoutine() error {
 	routine, err := CreateRoutine()
 	if err != nil {
@@ -112,4 +124,18 @@ func (ta *Task) UnfinishTodayRoutine() error {
 	ta.TodayRoutine.Unfinish()
 
 	return nil
+}
+
+func (ta *Task) shouldCreateTodayRotine() bool {
+	hasTodayRoutine := false
+	numberToday := int16(time.Now().Weekday())
+
+	for _, weekday := range ta.Weekdays {
+		if weekday.NumberDay == numberToday {
+			hasTodayRoutine = true
+			break
+		}
+	}
+
+	return hasTodayRoutine
 }

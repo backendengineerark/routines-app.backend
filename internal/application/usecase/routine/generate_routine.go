@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
+	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
 
 type GenerateRoutineUseCase struct {
@@ -29,6 +30,11 @@ func (gr *GenerateRoutineUseCase) Execute() error {
 
 	for _, task := range tasks {
 
+		if !gr.shouldGenerateRotineTodayOf(task) {
+			fmt.Printf("Today dont have the Task %s\n", task.Name)
+			continue
+		}
+
 		if task.TodayRoutine != nil {
 			fmt.Printf("Task %s already have today routine\n", task.Name)
 			continue
@@ -48,4 +54,18 @@ func (gr *GenerateRoutineUseCase) Execute() error {
 	fmt.Println("Finished to create routines")
 
 	return nil
+}
+
+func (gr *GenerateRoutineUseCase) shouldGenerateRotineTodayOf(task *entity.Task) bool {
+	hasTodayRoutine := false
+	numberToday := int16(time.Now().Weekday())
+
+	for _, weekday := range task.Weekdays {
+		if weekday.NumberDay == numberToday {
+			hasTodayRoutine = true
+			break
+		}
+	}
+
+	return hasTodayRoutine
 }

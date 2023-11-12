@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/backendengineerark/routines-app/internal/domain/common/custom_dates"
 	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
@@ -29,18 +31,17 @@ func (tr *TaskMysqlRepository) Create(task *entity.Task) error {
 		return err
 	}
 
-	stmt, err = tr.DB.Prepare("insert into routines(id, tasks_id, reference_date, is_finished, created_at, updated_at) values (?, ?, ?, ?, ?, ?)")
+	if task.TodayRoutine != nil {
+		tr.CreateTodayRoutine(task)
+		if err != nil {
+			return err
+		}
+	}
+
+	tr.syncWeekdays(task)
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(task.TodayRoutine.Id, task.Id, task.TodayRoutine.ReferenceDate, task.TodayRoutine.IsFinished, task.TodayRoutine.CreatedAt, task.TodayRoutine.UpdatedAt)
-	if err != nil {
-		return err
-	}
-
-	tr.CreateTodayRoutine(task)
 
 	return nil
 }
@@ -57,11 +58,21 @@ func (tr *TaskMysqlRepository) Update(task *entity.Task) error {
 		return err
 	}
 
+	tr.syncWeekdays(task)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (tr *TaskMysqlRepository) Delete(task *entity.Task) error {
 	err := tr.deleteAllroutinesBy(task)
+	if err != nil {
+		return err
+	}
+
+	tr.syncWeekdays(task)
 	if err != nil {
 		return err
 	}
@@ -128,6 +139,11 @@ func (tr *TaskMysqlRepository) FindById(id string) (*entity.Task, error) {
 		task.TodayRoutine = routine
 	}
 
+	weekdays, err := tr.findWeekdaysByTask(task)
+	if err == nil {
+		task.Weekdays = weekdays
+	}
+
 	return &task, nil
 }
 
@@ -157,6 +173,12 @@ func (tr *TaskMysqlRepository) FindAllBy(isArchived bool) ([]*entity.Task, error
 		if err == nil {
 			task.TodayRoutine = routine
 		}
+
+		weekdays, err := tr.findWeekdaysByTask(task)
+		if err == nil {
+			task.Weekdays = weekdays
+		}
+
 		tasks = append(tasks, &task)
 	}
 
@@ -165,6 +187,39 @@ func (tr *TaskMysqlRepository) FindAllBy(isArchived bool) ([]*entity.Task, error
 
 func (tr *TaskMysqlRepository) FindAllWeekday() ([]*entity.Weekday, error) {
 	rows, err := tr.DB.Query("select id, name, number_day from weekdays order by number_day asc")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var weekdays []*entity.Weekday
+
+	for rows.Next() {
+		var weekday entity.Weekday
+
+		err := rows.Scan(&weekday.Id, &weekday.Name, &weekday.NumberDay)
+		if err != nil {
+			return nil, err
+		}
+		weekdays = append(weekdays, &weekday)
+	}
+
+	return weekdays, nil
+}
+
+func (tr *TaskMysqlRepository) FindWeekdayIn(weekDayIds []string) ([]*entity.Weekday, error) {
+	query := fmt.Sprintf("select id, name, number_day from weekdays where id in(%s) order by number_day asc", strings.Join(strings.Split(strings.Repeat("?", len(weekDayIds)), ""), ", "))
+	stmt, err := tr.DB.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+
+	args := make([]interface{}, len(weekDayIds))
+	for i, id := range weekDayIds {
+		args[i] = id
+	}
+
+	rows, err := stmt.Query(args...)
 	if err != nil {
 		return nil, err
 	}
@@ -215,4 +270,53 @@ func (tr *TaskMysqlRepository) deleteAllroutinesBy(task *entity.Task) error {
 	}
 
 	return nil
+}
+
+func (tr *TaskMysqlRepository) syncWeekdays(task *entity.Task) error {
+	stmt, err := tr.DB.Prepare("delete from tasks_weekdays where tasks_id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(task.Id)
+	if err != nil {
+		return err
+	}
+
+	stmt, err = tr.DB.Prepare("insert into tasks_weekdays (tasks_id, weekdays_id) values (?, ?)")
+	if err != nil {
+		return err
+	}
+
+	for _, weekday := range task.Weekdays {
+		_, err = stmt.Exec(task.Id, weekday.Id)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (tr *TaskMysqlRepository) findWeekdaysByTask(task entity.Task) ([]*entity.Weekday, error) {
+	rows, err := tr.DB.Query("select id, name, number_day from weekdays w inner join tasks_weekdays tw on tw.weekdays_id = w.id where tw.tasks_id = ?", task.Id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var weekdays []*entity.Weekday
+
+	for rows.Next() {
+		var weekday entity.Weekday
+
+		err := rows.Scan(&weekday.Id, &weekday.Name, &weekday.NumberDay)
+		if err != nil {
+			return nil, err
+		}
+		weekdays = append(weekdays, &weekday)
+	}
+
+	return weekdays, nil
 }

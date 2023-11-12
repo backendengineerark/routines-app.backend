@@ -16,6 +16,7 @@ type ITaskRepository interface {
 	UpdateTodayRoutine(task *taskentity.Task) error
 	FindAllBy(isArchived bool) ([]*taskentity.Task, error)
 	FindAllWeekday() ([]*taskentity.Weekday, error)
+	FindWeekdayIn(weekdayIds []string) ([]*taskentity.Weekday, error)
 }
 
 type IMetricRepository interface {

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	taskdtocreate "github.com/backendengineerark/routines-app/internal/application/usecase/task/dto/create"
+	weekdaydtolist "github.com/backendengineerark/routines-app/internal/application/usecase/week/dto/list"
 	"github.com/backendengineerark/routines-app/internal/domain/repository"
 	"github.com/backendengineerark/routines-app/internal/domain/task/entity"
 )
@@ -22,7 +23,17 @@ func (ct *CreateTaskUseCase) Execute(input *taskdtocreate.TaskCreateInputDTO) (*
 		DueTime: input.DueTime,
 	}
 
-	task, err := entity.CreateTask(command)
+	var weekdaysIds []string
+	for _, weekday := range input.Days {
+		weekdaysIds = append(weekdaysIds, weekday.Id)
+	}
+
+	weekdays, err := ct.TaskRepository.FindWeekdayIn(weekdaysIds)
+	if err != nil {
+		return nil, err
+	}
+
+	task, err := entity.CreateTask(command, weekdays)
 	if err != nil {
 		return nil, err
 	}
@@ -31,11 +42,21 @@ func (ct *CreateTaskUseCase) Execute(input *taskdtocreate.TaskCreateInputDTO) (*
 		return nil, err
 	}
 
+	weekdaysOutput := []weekdaydtolist.WeekdayOutputDTO{}
+	for _, weekday := range task.Weekdays {
+		weekdaysOutput = append(weekdaysOutput, weekdaydtolist.WeekdayOutputDTO{
+			Id:        weekday.Id,
+			Name:      weekday.Name,
+			NumberDay: weekday.NumberDay,
+		})
+	}
+
 	output := &taskdtocreate.TaskCreateOutputDTO{
 		Id:         task.Id,
 		Name:       task.Name,
 		DueTime:    task.DueTime,
 		IsArchived: task.IsArchive,
+		Days:       weekdaysOutput,
 		CreatedAt:  task.CreatedAt,
 		UpdatedAt:  task.UpdatedAt,
 	}
