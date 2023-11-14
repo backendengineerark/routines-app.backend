@@ -10,6 +10,7 @@ import (
 type ITaskRepository interface {
 	Create(task *taskentity.Task) error
 	FindById(id string) (*taskentity.Task, error)
+	FindRoutineById(id string) (*taskentity.Routine, error)
 	Update(task *taskentity.Task) error
 	Delete(task *taskentity.Task) error
 	CreateTodayRoutine(task *taskentity.Task) error
@@ -17,6 +18,7 @@ type ITaskRepository interface {
 	FindAllBy(isArchived bool) ([]*taskentity.Task, error)
 	FindAllWeekday() ([]*taskentity.Weekday, error)
 	FindWeekdayIn(weekdayIds []string) ([]*taskentity.Weekday, error)
+	DeleteRoutine(routine *taskentity.Routine) error
 }
 
 type IMetricRepository interface {

@@ -87,3 +87,23 @@ func (th *RoutineHandler) UnfinishRoutine(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
 }
+
+func (th *RoutineHandler) DeleteRoutine(w http.ResponseWriter, r *http.Request) {
+
+	taskId := chi.URLParam(r, "routine_id")
+	if taskId == "" {
+		http.Error(w, "routine id required", http.StatusBadRequest)
+		return
+	}
+
+	deleteRoutinekUseCase := usecase.NewDeleteRoutineUseCase(th.TaskRepository)
+
+	err := deleteRoutinekUseCase.Execute(taskId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+}

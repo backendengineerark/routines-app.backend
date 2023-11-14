@@ -147,6 +147,23 @@ func (tr *TaskMysqlRepository) FindById(id string) (*entity.Task, error) {
 	return &task, nil
 }
 
+func (tr *TaskMysqlRepository) FindRoutineById(id string) (*entity.Routine, error) {
+	stmt, err := tr.DB.Prepare("select r.id, r.reference_date, r.is_finished, r.created_at, r.updated_at from routines r where r.id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	var routine entity.Routine
+
+	err = stmt.QueryRow(id).Scan(&routine.Id, &routine.ReferenceDate, &routine.IsFinished, &routine.CreatedAt, &routine.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &routine, nil
+}
+
 func (tr *TaskMysqlRepository) FindAllBy(isArchived bool) ([]*entity.Task, error) {
 	stmt, err := tr.DB.Prepare("select t.id, t.name, t.due_time, t.is_archived, t.created_at, t.updated_at, (SELECT COUNT(*) FROM routines r where is_finished = true and r.tasks_id  = t.id) as completed_times, (SELECT COUNT(*) FROM routines r where is_finished = false and r.tasks_id  = t.id) as failed_times from tasks t where t.is_archived = ? order by completed_times asc")
 	if err != nil {
@@ -319,4 +336,20 @@ func (tr *TaskMysqlRepository) findWeekdaysByTask(task entity.Task) ([]*entity.W
 	}
 
 	return weekdays, nil
+}
+
+func (tr *TaskMysqlRepository) DeleteRoutine(routine *entity.Routine) error {
+
+	stmt, err := tr.DB.Prepare("delete from routines where id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(routine.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -55,6 +55,7 @@ func main() {
 		r.Get("/", routineHandler.ListRoutine)
 		r.Post("/{task_id}/today-finish", routineHandler.FinishRoutine)
 		r.Post("/{task_id}/today-unfinish", routineHandler.UnfinishRoutine)
+		r.Delete("/{routine_id}", routineHandler.DeleteRoutine)
 	})
 
 	metricHandler := webhandler.NewMetricHandler(metricRepository)
