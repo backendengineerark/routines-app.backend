@@ -21,8 +21,8 @@ func CreateRoutine() (*Routine, error) {
 		Id:            uuid.NewString(),
 		ReferenceDate: custom_dates.TodayBeginningHour(),
 		IsFinished:    false,
-		CreatedAt:     time.Now().Local(),
-		UpdatedAt:     time.Now().Local(),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	err := routine.IsValid()

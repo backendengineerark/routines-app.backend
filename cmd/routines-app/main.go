@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/backendengineerark/routines-app/configs"
@@ -16,12 +17,12 @@ import (
 )
 
 func main() {
-	loc, _ := time.LoadLocation("America/Sao_Paulo")
-	time.Local = loc
-
 	configs := configs.LoadConfig("../../.")
 
-	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
+	loc, _ := time.LoadLocation(configs.TZ)
+	time.Local = loc
+
+	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=%s", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName, url.QueryEscape(configs.TZ)))
 	if err != nil {
 		panic(err)
 	}

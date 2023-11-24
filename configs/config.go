@@ -10,6 +10,7 @@ type Config struct {
 	DBUser                     string `mapstructure:"DB_USER"`
 	DBPassword                 string `mapstructure:"DB_PASSWORD"`
 	DBName                     string `mapstructure:"DB_NAME"`
+	TZ                         string `mapstructure:"TZ"`
 	CreateTodayRoutineTaskCron string `mapstructure:"CREATE_ROUTINES_TASK_CRON"`
 }
 
